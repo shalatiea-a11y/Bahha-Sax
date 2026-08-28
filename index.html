@@ -224,6 +224,19 @@ input:focus, select:focus { outline: 2px solid var(--navy); outline-offset: -1px
 .star-picker span { cursor: pointer; color: var(--surface-3); transition: color 0.15s; }
 .star-picker span.on { color: var(--gold); }
 
+/* ---- faq ---- */
+.faq-list { display: flex; flex-direction: column; gap: 10px; margin-top: 36px; }
+.faq-item { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; }
+.faq-item summary {
+  list-style: none; cursor: pointer; padding: 16px 20px;
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  font-weight: 700; font-size: 14.5px;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item .chev { color: var(--brass); font-size: 18px; flex: 0 0 auto; transition: transform 0.25s ease; }
+.faq-item[open] .chev { transform: rotate(180deg); }
+.faq-item .faq-a { padding: 0 20px 18px; color: var(--paper-dim); font-size: 14px; line-height: 1.7; }
+
 /* ---- scroll reveal (reversible: replays every time a section crosses the viewport, up or down) ---- */
 .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s cubic-bezier(.2,.7,.3,1), transform 0.7s cubic-bezier(.2,.7,.3,1); }
 .reveal.in { opacity: 1; transform: translateY(0); }
@@ -404,6 +417,16 @@ html[data-active-lang="en"] [data-lang="en"] { display: revert; }
   </div>
 </section>
 
+<section class="section reveal" id="faq">
+  <div class="wrap">
+    <div class="eyebrow" data-lang="sv">VANLIGA FRÅGOR</div>
+    <div class="eyebrow" data-lang="en">FAQ</div>
+    <h2 data-lang="sv">Bra att veta</h2>
+    <h2 data-lang="en">Good to know</h2>
+    <div class="faq-list reveal-stagger" id="faq-list"></div>
+  </div>
+</section>
+
 <footer class="footer">
   <div class="wrap footer-grid">
     <div class="brand-name">BAHAA SAX</div>
@@ -467,6 +490,59 @@ function setLang(l) {
   renderHours();
   renderBooking();
   renderReviews();
+  renderFAQ();
+}
+
+const FAQ = [
+  {
+    sv: 'Hur bokar jag en tid?',
+    en: 'How do I book an appointment?',
+    a_sv: 'Välj en tjänst under "Boka direkt", välj ett datum och en ledig tid, fyll i namn och telefonnummer och bekräfta. Tiden sparas direkt och blockeras för alla andra.',
+    a_en: 'Pick a service under "Book direct", choose a date and an available time, fill in your name and phone number, and confirm. The slot is saved immediately and blocked for everyone else.',
+  },
+  {
+    sv: 'Måste jag skicka WhatsApp efter att jag bokat?',
+    en: 'Do I have to send WhatsApp after booking?',
+    a_sv: 'Nej, det är helt frivilligt. Din bokning är redan sparad och bekräftad oavsett — WhatsApp-knappen är bara ett extra sätt att ge Bahaa en snabb, direkt notis om du vill.',
+    a_en: 'No, it\'s completely optional. Your booking is already saved and confirmed either way — the WhatsApp button is just an extra way to give Bahaa a quick heads-up if you want to.',
+  },
+  {
+    sv: 'Hur vet jag att min bokning gick igenom?',
+    en: 'How do I know my booking went through?',
+    a_sv: 'Direkt efter att du bekräftar ser du en skärm med alla dina uppgifter — tjänst, datum, tid och namn. Det betyder att tiden är sparad.',
+    a_en: 'Right after you confirm, you\'ll see a screen with all your details — service, date, time and name. That means the slot is saved.',
+  },
+  {
+    sv: 'Kan två personer boka samma tid?',
+    en: 'Can two people book the same time slot?',
+    a_sv: 'Nej. Så fort en tid är bokad blir den automatiskt blockerad för alla andra besökare, oavsett vem som bokade eller hur.',
+    a_en: 'No. As soon as a slot is booked it\'s automatically blocked for every other visitor, no matter who booked it or how.',
+  },
+  {
+    sv: 'Kan jag avboka eller ändra min tid?',
+    en: 'Can I cancel or change my booking?',
+    a_sv: 'Just nu görs det enklast genom att kontakta Bahaa direkt på telefon eller Instagram — se kontaktuppgifterna ovan.',
+    a_en: 'Right now the easiest way is to contact Bahaa directly by phone or Instagram — see the contact details above.',
+  },
+  {
+    sv: 'Är mina uppgifter säkra?',
+    en: 'Is my information safe?',
+    a_sv: 'Ditt namn och telefonnummer används bara för att bekräfta och hantera din bokning, och delas inte med tredje part.',
+    a_en: 'Your name and phone number are only used to confirm and manage your booking, and are never shared with third parties.',
+  },
+];
+
+function renderFAQ() {
+  const list = document.getElementById('faq-list');
+  list.innerHTML = FAQ.map((f) => `
+    <details class="faq-item stagger-item">
+      <summary>${t(f.sv, f.en)}<span class="chev">⌄</span></summary>
+      <div class="faq-a">${t(f.a_sv, f.a_en)}</div>
+    </details>`).join('');
+  const section = document.getElementById('faq');
+  if (section && section.classList.contains('in')) {
+    list.classList.add('in');
+  }
 }
 
 function renderServices() {
