@@ -7,7 +7,7 @@ from urllib.parse import urlparse, parse_qs
 
 sys.path.append(os.path.dirname(__file__))
 from _store import lrange, StoreNotConfigured  # noqa: E402
-from _biz import slot_list, overlaps  # noqa: E402
+from _biz import slot_list, overlaps, is_past_slot  # noqa: E402
 
 
 class handler(BaseHTTPRequestHandler):
@@ -26,11 +26,14 @@ class handler(BaseHTTPRequestHandler):
                 raw = lrange('bookings')
                 todays = [b for b in (json.loads(r) for r in raw) if b['date'] == date_str]
             except StoreNotConfigured:
-                self._send(200, {'slots': [{'time': s, 'busy': False} for s in all_slots], 'warning': 'store_not_configured'})
+                self._send(200, {'slots': [{'time': s, 'busy': is_past_slot(day, s)} for s in all_slots], 'warning': 'store_not_configured'})
                 return
 
             result = [
-                {'time': s, 'busy': any(overlaps(s, duration, b['time'], b['duration']) for b in todays)}
+                {
+                    'time': s,
+                    'busy': is_past_slot(day, s) or any(overlaps(s, duration, b['time'], b['duration']) for b in todays),
+                }
                 for s in all_slots
             ]
             self._send(200, {'slots': result})

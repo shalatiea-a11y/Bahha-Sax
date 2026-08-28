@@ -1,5 +1,12 @@
 """Shared business rules: opening hours + slot math, used by availability.py and book.py."""
 
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+# The shop is in Halmstad, Sweden - "past" must be judged in local time, not
+# server UTC time, otherwise slots near midnight would be filtered wrong.
+STOCKHOLM = ZoneInfo('Europe/Stockholm')
+
 # Bahaa Sax real opening hours. weekday: Monday=0 ... Sunday=6.
 # Value is (open, close) or None if closed that day.
 HOURS = {
@@ -44,3 +51,10 @@ def overlaps(a_start, a_min, b_start, b_min):
     b0 = _to_min(b_start)
     b1 = b0 + b_min
     return a0 < b1 and b0 < a1
+
+
+def is_past_slot(date_obj, time_str):
+    """True if this slot's start time is already behind the current time in Sweden."""
+    h, m = map(int, time_str.split(':'))
+    slot_dt = date_obj.replace(hour=h, minute=m, second=0, microsecond=0, tzinfo=STOCKHOLM)
+    return slot_dt <= datetime.now(STOCKHOLM)

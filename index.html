@@ -712,6 +712,10 @@ function renderBooking() {
             bookingState.submitError = t('Den tiden blev precis bokad av någon annan — välj en annan tid.', 'That slot was just booked by someone else — pick another time.');
             bookingState.step = 2; bookingState.time = null;
             await fetchSlots(bookingState.date, svc.min);
+          } else if (data.error === 'slot_in_past') {
+            bookingState.submitError = t('Den tiden har redan passerat — välj en annan tid.', 'That time has already passed — pick another time.');
+            bookingState.step = 2; bookingState.time = null;
+            await fetchSlots(bookingState.date, svc.min);
           } else if (data.error === 'store_not_configured') {
             bookingState.submitError = t('Bokningssystemet slutförs just nu — ring Bahaa direkt på 072-005 84 10.', 'The booking system is being finished right now — call Bahaa directly at 072-005 84 10.');
             renderBooking();

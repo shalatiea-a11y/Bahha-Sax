@@ -1,1 +1,4 @@
-# No third-party packages needed - api/*.py only use the Python standard library.
+# tzdata: IANA timezone database, needed so zoneinfo.ZoneInfo("Europe/Stockholm")
+# resolves correctly on Vercel's runtime regardless of the OS's own tz data.
+tzdata
+

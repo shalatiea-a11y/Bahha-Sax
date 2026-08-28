@@ -8,7 +8,7 @@ from http.server import BaseHTTPRequestHandler
 
 sys.path.append(os.path.dirname(__file__))
 from _store import lrange, rpush, acquire_lock, release_lock, StoreNotConfigured  # noqa: E402
-from _biz import slot_list, overlaps  # noqa: E402
+from _biz import slot_list, overlaps, is_past_slot  # noqa: E402
 
 
 class handler(BaseHTTPRequestHandler):
@@ -30,6 +30,9 @@ class handler(BaseHTTPRequestHandler):
             day = datetime.strptime(date, '%Y-%m-%d')
             if time_str not in slot_list(day, duration):
                 self._send(400, {'error': 'invalid_slot'})
+                return
+            if is_past_slot(day, time_str):
+                self._send(409, {'error': 'slot_in_past'})
                 return
 
             try:
