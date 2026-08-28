@@ -46,6 +46,27 @@ to notify him about. That's what `agenda.html` is for.
 4. He opens it once, it remembers the key on that device from then on, and
    shows every upcoming booking grouped by day — regardless of WhatsApp.
 
+### 4. Automatic email notification (works even without WhatsApp)
+The WhatsApp button only fires if the customer has WhatsApp and taps it — not
+everyone does. This adds a real, automatic email to the owner on every single
+booking, sent server-side, with no dependency on the customer at all.
+
+1. On the Gmail account that should send/receive these (can be the owner's
+   own address), turn on **2-Step Verification** if it isn't already
+   (Google Account → Security).
+2. Still under Security, open **App passwords**, create one for "Mail", and
+   copy the 16-character password it gives you.
+3. In Vercel → **Settings → Environment Variables**, add:
+   - `GMAIL_ADDRESS` = that Gmail address
+   - `GMAIL_APP_PASSWORD` = the 16-character app password from step 2
+   - `OWNER_NOTIFY_EMAIL` = where the notification should land (optional -
+     defaults to `GMAIL_ADDRESS` itself if omitted)
+4. Redeploy.
+
+From then on, every successful booking sends a real email automatically -
+service, date, time, customer name and phone. If these env vars aren't set,
+booking still works fine, it just skips the email silently.
+
 ## Changing business details later
 - **Opening hours / slot length**: edit the `HOURS` dict in `api/_biz.py`,
   and the matching `HOURS` array near the top of the `<script>` in

@@ -704,7 +704,7 @@ function renderBooking() {
       try {
         const res = await fetch('/api/book', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ service: svc.id, date: bookingState.date, time: bookingState.time, duration: svc.min, name, phone }),
+          body: JSON.stringify({ service: svc.id, serviceName: svc.sv, date: bookingState.date, time: bookingState.time, duration: svc.min, name, phone }),
         });
         const data = await res.json();
         if (!res.ok) {

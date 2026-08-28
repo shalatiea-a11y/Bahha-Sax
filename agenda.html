@@ -48,6 +48,13 @@ h1 { font-family: var(--font-display); text-transform: uppercase; letter-spacing
 </div>
 
 <script>
+// Fallback names for bookings made before service_name was recorded directly.
+const SERVICE_NAMES = {
+  cut: 'Klippning', combo: 'Klippning + Skägg', style: 'Styling',
+  beard: 'Skäggtrimning', razor: 'Rakning med rakkniv', kids: 'Barnklippning',
+};
+function serviceLabel(b) { return b.service_name || SERVICE_NAMES[b.service] || b.service; }
+
 function getKey() {
   const url = new URL(window.location.href);
   const fromUrl = url.searchParams.get('key');
@@ -98,7 +105,7 @@ async function load() {
             <div class="booking-time">${b.time}</div>
             <div class="booking-info" style="flex:1;">
               <strong>${b.name}</strong>
-              <span>${b.service} · ${b.duration} min · <a href="tel:${b.phone}">${b.phone}</a></span>
+              <span>${serviceLabel(b)} · ${b.duration} min · <a href="tel:${b.phone}">${b.phone}</a></span>
             </div>
           </div>`).join('')}
       </div>`).join('');

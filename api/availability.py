@@ -7,7 +7,7 @@ from urllib.parse import urlparse, parse_qs
 
 sys.path.append(os.path.dirname(__file__))
 from _store import lrange, StoreNotConfigured  # noqa: E402
-from _biz import slot_list, overlaps, is_past_slot  # noqa: E402
+from _biz import slot_list, overlaps, is_past_slot, STOCKHOLM  # noqa: E402
 
 
 class handler(BaseHTTPRequestHandler):
@@ -21,12 +21,17 @@ class handler(BaseHTTPRequestHandler):
                 return
             day = datetime.strptime(date_str, '%Y-%m-%d')
             all_slots = slot_list(day, duration)
+            server_time = datetime.now(STOCKHOLM).strftime('%Y-%m-%d %H:%M:%S')
 
             try:
                 raw = lrange('bookings')
                 todays = [b for b in (json.loads(r) for r in raw) if b['date'] == date_str]
             except StoreNotConfigured:
-                self._send(200, {'slots': [{'time': s, 'busy': is_past_slot(day, s)} for s in all_slots], 'warning': 'store_not_configured'})
+                self._send(200, {
+                    'slots': [{'time': s, 'busy': is_past_slot(day, s)} for s in all_slots],
+                    'warning': 'store_not_configured',
+                    'server_time': server_time,
+                })
                 return
 
             result = [
@@ -36,7 +41,7 @@ class handler(BaseHTTPRequestHandler):
                 }
                 for s in all_slots
             ]
-            self._send(200, {'slots': result})
+            self._send(200, {'slots': result, 'server_time': server_time})
         except Exception as e:
             self._send(400, {'error': str(e)})
 

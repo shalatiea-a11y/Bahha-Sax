@@ -9,6 +9,7 @@ from http.server import BaseHTTPRequestHandler
 sys.path.append(os.path.dirname(__file__))
 from _store import lrange, rpush, acquire_lock, release_lock, StoreNotConfigured  # noqa: E402
 from _biz import slot_list, overlaps, is_past_slot  # noqa: E402
+from _notify import send_owner_email  # noqa: E402
 
 
 class handler(BaseHTTPRequestHandler):
@@ -20,6 +21,7 @@ class handler(BaseHTTPRequestHandler):
             time_str = (body.get('time') or '').strip()
             duration = int(body.get('duration', 30))
             service = (body.get('service') or '').strip()
+            service_name = (body.get('serviceName') or service).strip()[:60]
             name = (body.get('name') or '').strip()[:80]
             phone = (body.get('phone') or '').strip()[:30]
 
@@ -54,6 +56,7 @@ class handler(BaseHTTPRequestHandler):
                 booking = {
                     'id': str(uuid.uuid4()),
                     'service': service,
+                    'service_name': service_name,
                     'date': date,
                     'time': time_str,
                     'duration': duration,
@@ -62,6 +65,20 @@ class handler(BaseHTTPRequestHandler):
                     'created_at': int(time.time()),
                 }
                 rpush('bookings', json.dumps(booking))
+                try:
+                    send_owner_email(
+                        subject=f'Ny bokning: {service_name} {date} {time_str}',
+                        body=(
+                            f'Ny bokning på Bahaa Sax:\n\n'
+                            f'Tjänst: {service_name}\n'
+                            f'Datum: {date}\n'
+                            f'Tid: {time_str}\n'
+                            f'Kund: {name}\n'
+                            f'Telefon: {phone}\n'
+                        ),
+                    )
+                except Exception:
+                    pass
                 self._send(200, {'ok': True, 'booking': booking})
             finally:
                 release_lock('bookings_lock')
