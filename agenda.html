@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<title>Bahaa Sax — Bokningar</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0A0C10; --surface: #13161D; --surface-2: #1B2029; --line: #2B3140;
+  --paper: #F2EFE8; --paper-dim: #A3A8B4; --paper-faint: #6B707C;
+  --gold: #D9A94E; --gold-2: #9C7627; --gold-glow: rgba(217,169,78,0.30);
+  --success: #3FA66B; --font-display: 'Oswald', sans-serif; --font-body: 'Manrope', sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ink); color: var(--paper); font-family: var(--font-body); min-height: 100vh; }
+.wrap { max-width: 640px; margin: 0 auto; padding: 32px 20px 60px; }
+h1 { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.04em; font-size: 22px; margin: 0 0 4px; }
+.sub { color: var(--paper-faint); font-size: 13px; margin-bottom: 24px; }
+.key-box { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+.key-box input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface-2); color: var(--paper); font-size: 15px; }
+.key-box button, .refresh-btn { margin-top: 12px; background: linear-gradient(135deg, var(--gold), var(--gold-2)); color: var(--ink); border: none; border-radius: 8px; padding: 12px 18px; font-weight: 800; font-size: 14px; cursor: pointer; }
+.day-group { margin-bottom: 22px; }
+.day-title { font-family: var(--font-display); color: var(--gold); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.booking-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.booking-time { font-family: var(--font-display); font-size: 18px; color: var(--gold); min-width: 56px; }
+.booking-info strong { display: block; font-size: 14px; }
+.booking-info span { font-size: 12.5px; color: var(--paper-dim); }
+.booking-info a { color: var(--paper-dim); text-decoration: none; }
+.empty, .error, .loading { color: var(--paper-faint); font-size: 14px; padding: 30px 0; text-align: center; }
+.error { color: #F0A0AC; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Bahaa Sax — Bokningar</h1>
+  <div class="sub">Kommande bokningar, oavsett om kunden skickade WhatsApp eller inte.</div>
+
+  <div class="key-box" id="key-box" style="display:none;">
+    <label style="font-size:12px;color:var(--paper-dim);display:block;margin-bottom:8px;">Ange din nyckel (fråga den som satte upp sidan)</label>
+    <input type="text" id="key-input" placeholder="nyckel...">
+    <button id="save-key">Visa bokningar</button>
+  </div>
+
+  <div id="list"><div class="loading">Laddar…</div></div>
+  <button class="refresh-btn" id="refresh" style="display:none;margin-top:16px;">↻ Uppdatera</button>
+</div>
+
+<script>
+function getKey() {
+  const url = new URL(window.location.href);
+  const fromUrl = url.searchParams.get('key');
+  if (fromUrl) { localStorage.setItem('bahaa_owner_key', fromUrl); return fromUrl; }
+  return localStorage.getItem('bahaa_owner_key') || '';
+}
+
+function dayLabel(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const days = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diffDays = Math.round((d - today) / 86400000);
+  const label = `${days[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`;
+  if (diffDays === 0) return `${label} — Idag`;
+  if (diffDays === 1) return `${label} — Imorgon`;
+  return label;
+}
+
+async function load() {
+  const key = getKey();
+  const list = document.getElementById('list');
+  const keyBox = document.getElementById('key-box');
+  if (!key) { keyBox.style.display = 'block'; list.innerHTML = ''; return; }
+
+  list.innerHTML = '<div class="loading">Laddar…</div>';
+  try {
+    const res = await fetch(`/api/bookings?key=${encodeURIComponent(key)}`);
+    if (res.status === 403) {
+      localStorage.removeItem('bahaa_owner_key');
+      keyBox.style.display = 'block';
+      list.innerHTML = '<div class="error">Fel nyckel — försök igen.</div>';
+      return;
+    }
+    const data = await res.json();
+    keyBox.style.display = 'none';
+    document.getElementById('refresh').style.display = 'inline-block';
+    const bookings = data.bookings || [];
+    if (!bookings.length) { list.innerHTML = '<div class="empty">Inga kommande bokningar.</div>'; return; }
+
+    const byDay = {};
+    bookings.forEach((b) => { (byDay[b.date] = byDay[b.date] || []).push(b); });
+
+    list.innerHTML = Object.keys(byDay).sort().map((date) => `
+      <div class="day-group">
+        <div class="day-title">${dayLabel(date)}</div>
+        ${byDay[date].map((b) => `
+          <div class="booking-card">
+            <div class="booking-time">${b.time}</div>
+            <div class="booking-info" style="flex:1;">
+              <strong>${b.name}</strong>
+              <span>${b.service} · ${b.duration} min · <a href="tel:${b.phone}">${b.phone}</a></span>
+            </div>
+          </div>`).join('')}
+      </div>`).join('');
+  } catch (e) {
+    list.innerHTML = '<div class="error">Kunde inte hämta bokningar just nu.</div>';
+  }
+}
+
+document.getElementById('save-key').addEventListener('click', () => {
+  const v = document.getElementById('key-input').value.trim();
+  if (v) { localStorage.setItem('bahaa_owner_key', v); load(); }
+});
+document.getElementById('refresh').addEventListener('click', load);
+load();
+</script>
+</body>
+</html>

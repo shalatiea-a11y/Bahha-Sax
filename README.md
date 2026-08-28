@@ -29,6 +29,23 @@ every visitor sees the same live data (bookings, slot conflicts, reviews).
 That's it — bookings and reviews now save for real and everyone who opens the
 link sees the same data.
 
+### 3. Give the owner a bookings list (works even without WhatsApp)
+The WhatsApp button on the confirmation screen is just a convenience — the
+booking itself is always saved and the slot is always blocked for others,
+whether or not the customer has WhatsApp or taps that button. So the owner
+needs one place to see every booking, not just the ones a customer happened
+to notify him about. That's what `agenda.html` is for.
+
+1. In Vercel → **Settings → Environment Variables**, add:
+   - `OWNER_KEY` = a private password only the owner knows (pick your own, or
+     use a random one — this protects the page since it shows real customer
+     names/phone numbers).
+2. Redeploy.
+3. Give the owner this link (with the key baked in, so he just bookmarks it):
+   `https://bahha-sax.vercel.app/agenda.html?key=YOUR_OWNER_KEY`
+4. He opens it once, it remembers the key on that device from then on, and
+   shows every upcoming booking grouped by day — regardless of WhatsApp.
+
 ## Changing business details later
 - **Opening hours / slot length**: edit the `HOURS` dict in `api/_biz.py`,
   and the matching `HOURS` array near the top of the `<script>` in
