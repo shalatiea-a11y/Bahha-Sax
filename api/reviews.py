@@ -7,6 +7,7 @@ from http.server import BaseHTTPRequestHandler
 
 sys.path.append(os.path.dirname(__file__))
 from _store import lrange, rpush, StoreNotConfigured  # noqa: E402
+from _ratelimit import rate_limited, is_honeypot_filled  # noqa: E402
 
 
 class handler(BaseHTTPRequestHandler):
@@ -23,8 +24,17 @@ class handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         try:
+            if rate_limited(self, 'review', limit=5, window_seconds=3600):
+                self._send(429, {'error': 'rate_limited'})
+                return
+
             length = int(self.headers.get('Content-Length', 0))
             body = json.loads(self.rfile.read(length) or b'{}')
+
+            if is_honeypot_filled(body):
+                self._send(200, {'ok': True})
+                return
+
             name = (body.get('name') or '').strip()[:60]
             stars = int(body.get('stars', 0))
             text = (body.get('text') or '').strip()[:500]

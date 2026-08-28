@@ -53,3 +53,11 @@ def acquire_lock(name, ttl_seconds=5, retries=15, delay=0.2):
 
 def release_lock(name):
     _call('del', name)
+
+
+def incr_with_expiry(key, ttl_seconds):
+    """Atomically bump a counter and make sure it expires. Used for rate limiting."""
+    count = _call('incr', key).get('result', 0)
+    if count == 1:
+        _call('expire', key, ttl_seconds)
+    return count

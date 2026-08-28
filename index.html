@@ -167,6 +167,7 @@ input:focus, select:focus { outline: 2px solid var(--navy); outline-offset: -1px
 .slot-btn:disabled { opacity: 0.28; cursor: not-allowed; text-decoration: line-through; }
 .slot-empty { color: var(--paper-faint); font-size: 13px; padding: 10px 0; }
 .form-error { color: #F0A0AC; font-size: 13px; font-weight: 700; margin-top: 14px; }
+.hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .form-notice { color: var(--paper-faint); font-size: 12.5px; margin-top: 14px; line-height: 1.6; }
 
 .confirm-card { text-align: center; padding: 30px 10px; }
@@ -632,6 +633,7 @@ function renderReviews() {
     <div class="star-picker" id="star-picker">
       ${[1,2,3,4,5].map((n) => `<span data-star="${n}" class="${n <= pickedStars ? 'on' : ''}">★</span>`).join('')}
     </div>
+    <input type="text" id="review-hp-field" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
     <input type="text" id="review-name-input" placeholder="${t('Ditt namn', 'Your name')}" style="max-width:420px;margin:0 auto 10px;">
     <input type="text" id="review-text-input" placeholder="${t('Skriv några ord (valfritt)...', 'Write a few words (optional)...')}" style="max-width:420px;margin:0 auto 14px;">
     <div><button class="btn" id="submit-review">${t('Skicka omdöme', 'Submit review')}</button></div>
@@ -644,13 +646,14 @@ function renderReviews() {
   box.querySelector('#submit-review').addEventListener('click', async () => {
     const name = box.querySelector('#review-name-input').value.trim();
     const text = box.querySelector('#review-text-input').value.trim();
+    const website = box.querySelector('#review-hp-field').value;
     const msg = box.querySelector('#review-msg');
     if (!name) { msg.innerHTML = `<p class="form-error">${t('Skriv ditt namn.', 'Please enter your name.')}</p>`; return; }
     if (!pickedStars) { msg.innerHTML = `<p class="form-error">${t('Välj antal stjärnor först.', 'Pick a star rating first.')}</p>`; return; }
     try {
       const res = await fetch('/api/reviews', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, stars: pickedStars, text }),
+        body: JSON.stringify({ name, stars: pickedStars, text, website }),
       });
       if (!res.ok) throw new Error('failed');
       pickedStars = 0;
@@ -759,6 +762,7 @@ function renderBooking() {
 
   else if (bookingState.step === 3) {
     panel.innerHTML = steps + `
+      <input type="text" id="hp-field" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
       <label>${t('Namn','Name')}</label>
       <input type="text" id="name-input" value="${bookingState.name}" placeholder="${t('Ditt namn','Your name')}">
       <label>${t('Telefonnummer','Phone number')}</label>
@@ -772,6 +776,7 @@ function renderBooking() {
     panel.querySelector('#confirm-booking').addEventListener('click', async () => {
       const name = panel.querySelector('#name-input').value.trim();
       const phone = panel.querySelector('#phone-input').value.trim();
+      const website = panel.querySelector('#hp-field').value;
       if (!name || !phone) { bookingState.submitError = t('Fyll i namn och telefonnummer.', 'Please fill in name and phone.'); renderBooking(); return; }
       bookingState.name = name; bookingState.phone = phone;
       const btn = panel.querySelector('#confirm-booking');
@@ -780,7 +785,7 @@ function renderBooking() {
       try {
         const res = await fetch('/api/book', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ service: svc.id, serviceName: svc.sv, date: bookingState.date, time: bookingState.time, duration: svc.min, name, phone }),
+          body: JSON.stringify({ service: svc.id, serviceName: svc.sv, date: bookingState.date, time: bookingState.time, duration: svc.min, name, phone, website }),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -794,6 +799,9 @@ function renderBooking() {
             await fetchSlots(bookingState.date, svc.min);
           } else if (data.error === 'store_not_configured') {
             bookingState.submitError = t('Bokningssystemet slutförs just nu — ring Bahaa direkt på 072-005 84 10.', 'The booking system is being finished right now — call Bahaa directly at 072-005 84 10.');
+            renderBooking();
+          } else if (data.error === 'rate_limited') {
+            bookingState.submitError = t('För många försök just nu — vänta någon minut och försök igen.', 'Too many attempts right now — wait a minute and try again.');
             renderBooking();
           } else {
             bookingState.submitError = t('Något gick fel, försök igen.', 'Something went wrong, please try again.');
