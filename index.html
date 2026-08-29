@@ -41,8 +41,8 @@ img, svg { max-width: 100%; }
 h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; margin: 0; text-wrap: balance; }
 a { color: inherit; }
 .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
-.section { padding: 88px 0; }
-.section-tight { padding: 56px 0; }
+.section { padding: 88px 0; scroll-margin-top: 80px; }
+.section-tight { padding: 56px 0; scroll-margin-top: 80px; }
 .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--brass); margin-bottom: 12px; }
 
 /* ---- nav ---- */
@@ -151,7 +151,7 @@ a { color: inherit; }
 label { display: block; font-size: 11.5px; font-weight: 700; color: var(--paper-dim); text-transform: uppercase; letter-spacing: 0.06em; margin: 16px 0 6px; }
 input[type=text], input[type=tel], input[type=date], select {
   width: 100%; padding: 13px; border-radius: var(--radius-sm); border: 1px solid var(--line);
-  background: var(--surface-2); color: var(--paper); font-family: var(--font-body); font-size: 15px;
+  background: var(--surface-2); color: var(--paper); font-family: var(--font-body); font-size: 16px;
 }
 input:focus, select:focus { outline: 2px solid var(--navy); outline-offset: -1px; }
 
@@ -269,6 +269,9 @@ html[data-active-lang="en"] [data-lang="en"] { display: revert; }
   .hero-grid { grid-template-columns: 1fr; }
   .hero-art { order: -1; }
   .hl-grid { grid-template-columns: 1fr; }
+  .section { padding: 56px 0; }
+  .svc-card { padding: 18px; gap: 10px; }
+  .svc-grid { gap: 12px; margin-top: 24px; }
 }
 ::-webkit-scrollbar { display: none; }
 </style>
@@ -845,8 +848,18 @@ function renderBooking() {
 }
 
 document.getElementById('lang-toggle').addEventListener('click', () => setLang(currentLang === 'sv' ? 'en' : 'sv'));
-['nav-book', 'hero-book'].forEach((id) => document.getElementById(id).addEventListener('click', () => document.getElementById('booking').scrollIntoView({ behavior: 'smooth' })));
-document.getElementById('hero-services').addEventListener('click', () => document.getElementById('services').scrollIntoView({ behavior: 'smooth' }));
+
+// Scroll using offsetTop (layout position) rather than scrollIntoView/getBoundingClientRect,
+// since reveal-on-scroll sections start translateY-offset before their IntersectionObserver
+// 'in' class lands, which would otherwise throw off the target scroll position.
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  const navHeight = document.querySelector('.nav').getBoundingClientRect().height;
+  const y = el.offsetTop - navHeight - 8;
+  window.scrollTo({ top: y, behavior: 'smooth' });
+}
+['nav-book', 'hero-book'].forEach((id) => document.getElementById(id).addEventListener('click', () => scrollToSection('booking')));
+document.getElementById('hero-services').addEventListener('click', () => scrollToSection('services'));
 
 // ---- scroll reveal: sections fade/slide up entering the viewport, and fade back out leaving it (both scroll directions) ----
 function setupScrollReveal() {
