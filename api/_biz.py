@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 # server UTC time, otherwise slots near midnight would be filtered wrong.
 STOCKHOLM = ZoneInfo('Europe/Stockholm')
 
-# Bahaa Sax real opening hours. weekday: Monday=0 ... Sunday=6.
+# HSL.STUDIO placeholder opening hours - update with real hours before go-live. weekday: Monday=0 ... Sunday=6.
 # Value is (open, close) or None if closed that day.
 HOURS = {
     0: ('11:00', '19:00'),  # Monday

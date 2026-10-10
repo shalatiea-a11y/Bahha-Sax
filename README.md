@@ -1,6 +1,6 @@
-# Bahaa Sax — booking website
+# HSL.STUDIO — booking website
 
-Real booking site for Bahaa Sax barbershop (Halmstad, Sweden). Static frontend
+Real booking site for HSL.STUDIO barbershop (Halmstad, Sweden). Static frontend
 (`index.html`) + three small Python serverless API routes in `api/` for
 availability, booking and reviews, all backed by one shared Redis database so
 every visitor sees the same live data (bookings, slot conflicts, reviews).
@@ -9,10 +9,10 @@ every visitor sees the same live data (bookings, slot conflicts, reviews).
 
 ### 1. Deploy to Vercel
 1. Go to **vercel.com** and sign up / log in (use "Continue with GitHub").
-2. Click **Add New → Project**, pick this **bahaa-sax** repo, click **Deploy**.
+2. Click **Add New → Project**, pick this repo, click **Deploy**.
    No build settings needed — Vercel detects `index.html` and the `api/*.py`
    functions automatically.
-3. You'll get a live URL like `https://bahaa-sax.vercel.app`. It will work,
+3. You'll get a live URL like `https://your-project-name.vercel.app`. It will work,
    but bookings/reviews won't save yet until step 2.
 
 ### 2. Add the shared database (Upstash Redis, free)
@@ -79,8 +79,8 @@ booking still works fine, it just skips the email silently.
   "hours" section and footer.
 
 ## How booking notifications work right now
-When someone finishes booking, the confirmation screen shows a **"Notify
-Bahaa on WhatsApp"** button that opens a pre-filled WhatsApp message to his
+When someone finishes booking, the confirmation screen shows a **"Notify via
+WhatsApp"** button that opens a pre-filled WhatsApp message to the owner's
 number — the customer taps send. This works immediately with no extra setup.
 A fully automatic Google Calendar entry (no tap needed) is possible later but
 requires a Google Cloud OAuth app and more backend work — ask if you want

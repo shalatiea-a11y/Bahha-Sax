@@ -80,7 +80,7 @@ class handler(BaseHTTPRequestHandler):
                     send_owner_email(
                         subject=f'Ny bokning: {service_name} {date} {time_str}',
                         body=(
-                            f'Ny bokning på Bahaa Sax:\n\n'
+                            f'Ny bokning på HSL.STUDIO:\n\n'
                             f'Tjänst: {service_name}\n'
                             f'Datum: {date}\n'
                             f'Tid: {time_str}\n'

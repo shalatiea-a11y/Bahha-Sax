@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
-<title>Bahaa Sax — Bokningar</title>
+<title>HSL.STUDIO — Bokningar</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -34,7 +34,7 @@ h1 { font-family: var(--font-display); text-transform: uppercase; letter-spacing
 </head>
 <body>
 <div class="wrap">
-  <h1>Bahaa Sax — Bokningar</h1>
+  <h1>HSL.STUDIO — Bokningar</h1>
   <div class="sub">Kommande bokningar, oavsett om kunden skickade WhatsApp eller inte.</div>
 
   <div class="key-box" id="key-box" style="display:none;">
@@ -58,8 +58,8 @@ function serviceLabel(b) { return b.service_name || SERVICE_NAMES[b.service] || 
 function getKey() {
   const url = new URL(window.location.href);
   const fromUrl = url.searchParams.get('key');
-  if (fromUrl) { localStorage.setItem('bahaa_owner_key', fromUrl); return fromUrl; }
-  return localStorage.getItem('bahaa_owner_key') || '';
+  if (fromUrl) { localStorage.setItem('hsl_owner_key', fromUrl); return fromUrl; }
+  return localStorage.getItem('hsl_owner_key') || '';
 }
 
 function dayLabel(dateStr) {
@@ -83,7 +83,7 @@ async function load() {
   try {
     const res = await fetch(`/api/bookings?key=${encodeURIComponent(key)}`);
     if (res.status === 403) {
-      localStorage.removeItem('bahaa_owner_key');
+      localStorage.removeItem('hsl_owner_key');
       keyBox.style.display = 'block';
       list.innerHTML = '<div class="error">Fel nyckel — försök igen.</div>';
       return;
@@ -116,7 +116,7 @@ async function load() {
 
 document.getElementById('save-key').addEventListener('click', () => {
   const v = document.getElementById('key-input').value.trim();
-  if (v) { localStorage.setItem('bahaa_owner_key', v); load(); }
+  if (v) { localStorage.setItem('hsl_owner_key', v); load(); }
 });
 document.getElementById('refresh').addEventListener('click', load);
 load();
